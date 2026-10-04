@@ -29,6 +29,8 @@ class Depgraph < Formula
   skip_clean "libexec"
 
   def install
+    # Supply prefix metadata so Homebrew does not move the verified package licenses.
+    cp ["LICENSE-APACHE", "LICENSE-MIT"], prefix
     # Packaged workers verify the entire release tree. Preserve every byte and path.
     libexec.install Dir["*"]
     %w[depgraph depgraph-mcp].each do |name|
