@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: ja-JP
+reviews:
+  auto_review:
+    # openpath の Release ワークフローが GitHub App で出す cask 更新の PR は、
+    # CI（brew audit / release check）で検証するため、自動レビューから外す。
+    # 作成者名の完全一致（大文字と小文字を区別）。人が出す PR は引き続きレビューする。
+    ignore_usernames:
+      - "tamat-homebrew-tap[bot]"

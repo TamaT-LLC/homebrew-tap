@@ -64,6 +64,7 @@ Preview を試す場合は、[GitHub Releases](https://github.com/TamaT-LLC/open
 
 openpath の Stable を公開すると、openpath の Release ワークフローが GitHub App でこの tap に PR を出します。
 PR は、Release に添付された cask（`openpath.rb`）で `Casks/openpath.rb` を置き換えるもので、tap の CI が通ると自動でマージされます。
+App が出す PR は CI（`brew audit` / `release check`）で検証し、CodeRabbit のレビュー対象外です。
 
 CI は次のことを確かめ、1 つでも合わなければマージしません。
 
