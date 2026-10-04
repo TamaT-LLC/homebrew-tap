@@ -132,4 +132,4 @@ jobs:
           mkdir -p "$(dirname "${tap_dir}")"
           ln -s "${GITHUB_WORKSPACE}" "${tap_dir}"
           brew install --formula tamat-llc/tap/depgraph
-          brew test tamat-llc/tap/depgraph
+          brew test --verbose tamat-llc/tap/depgraph

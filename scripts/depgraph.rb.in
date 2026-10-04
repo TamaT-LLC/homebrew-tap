@@ -1,7 +1,6 @@
 class Depgraph < Formula
   desc "Explainable dependency graphs for Rust, Go, TypeScript, and JavaScript"
   homepage "https://github.com/TamaT-LLC/depgraph-cli"
-  version "@VERSION@"
   license any_of: ["MIT", "Apache-2.0"]
 
   depends_on "node@24"
@@ -48,7 +47,9 @@ class Depgraph < Formula
     (testpath/"tsconfig.json").write('{"compilerOptions":{"strict":true},"include":["*.ts"]}')
     (testpath/"index.ts").write("export const value: number = 42;\n")
     store = testpath/"graph.sqlite"
-    system bin/"depgraph", "--store", store, "scan", testpath, "--json"
+    scan = JSON.parse(shell_output("#{bin}/depgraph --store #{store} scan #{testpath} --json"))
+    assert_equal "completed", scan.fetch("status")
+    assert_operator scan.dig("coverage", "files_analyzed"), :>, 0
     result = JSON.parse(shell_output("#{bin}/depgraph --store #{store} doctor --json"))
     assert_equal "verified", result.dig("release", "core_integrity")
     assert_equal "completed", result.dig("latest_attempt", "status")

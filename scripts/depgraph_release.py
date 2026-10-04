@@ -139,7 +139,7 @@ def render(tag, digests):
 
 
 def formula_tag(path):
-    match = re.search(r'^  version "([^"]+)"$', path.read_text(), re.MULTILINE)
+    match = re.search(r'releases/download/v([0-9]+\.[0-9]+\.[0-9]+)/', path.read_text(), re.MULTILINE)
     if match is None:
         raise ValueError("missing formula version")
     tag = "v" + match.group(1)

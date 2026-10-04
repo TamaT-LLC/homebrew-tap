@@ -83,7 +83,7 @@ class ReleaseTests(unittest.TestCase):
     def test_blocks_downgrades(self):
         with tempfile.TemporaryDirectory() as directory:
             base = Path(directory) / "base.rb"
-            base.write_text('  version "0.6.1"\n')
+            base.write_text('releases/download/v0.6.1/\n')
             release.no_downgrade("v0.6.1", base)
             release.no_downgrade("v0.6.2", base)
             with self.assertRaises(ValueError): release.no_downgrade("v0.6.0", base)
