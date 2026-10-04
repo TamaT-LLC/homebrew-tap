@@ -2,14 +2,50 @@
 
 日本語 | [English](#english)
 
-TamaT LLC が公開している macOS アプリを Homebrew で配布するための tap です。
-現在は [openpath](https://github.com/TamaT-LLC/openpath) の cask だけを提供しています。
+TamaT LLC のアプリと CLI を Homebrew で配布する tap です。
+[openpath](https://github.com/TamaT-LLC/openpath) の cask と [depgraph](https://github.com/TamaT-LLC/depgraph-cli) の Formula を提供しています。
 
 | cask | 内容 | 動作環境 |
 | --- | --- | --- |
 | `openpath` | ファイル選択ダイアログにファジー検索のパレットを重ねるメニューバー常駐アプリ | macOS 14 (Sonoma) 以降、Apple Silicon / Intel |
 
-## インストール
+## depgraph のインストール
+
+macOS（Apple Silicon / Intel）と Linux（ARM64 / x86-64）向けの公式ネイティブパッケージを導入します。
+Linux は Ubuntu 24.04 の glibc 環境で検証します。
+
+```bash
+brew install tamat-llc/tap/depgraph
+```
+
+初回は tap の追加と depgraph Formula の信頼設定も行われます。
+その後は tap 名を省略できます。
+
+```bash
+brew install depgraph
+brew upgrade depgraph
+brew uninstall depgraph
+```
+
+tap を追加済みでも信頼設定がない場合は、先に `brew trust --formula tamat-llc/tap/depgraph` を実行します。
+Node.js 24 系は Homebrew が導入し、ランチャーがその実行ファイルを選びます。
+Go・Rust の解析には、対象プロジェクトのツールチェーンとオフライン依存関係が必要です。
+`depgraph-mcp` も入りますが、MCP / compiler-precise 解析には同じ版・ターゲットの検証済み compiler pack が追加で必要です。
+導入手順は [depgraph の README](https://github.com/TamaT-LLC/depgraph-cli#readme) を参照してください。
+
+Formula は公式アーカイブの全ファイルを変更せずに保持します。
+CI は署名付き tag、成功した CI / Release、公開後証跡、4 ターゲットの SHA-256、版の後退がないことを検証します。
+macOS / Linux の各 CPU で `brew install` と `brew test` を実行し、Web の解析と同梱ワーカーの整合性を確認します。
+
+メンテナーは次のコマンドで新しい Stable の Formula を生成できます。
+公開後証跡がない Release や、一部ターゲットが欠けている Release は拒否します。
+
+```bash
+python3 scripts/depgraph_release.py render --tag vX.Y.Z --base-formula Formula/depgraph.rb
+python3 scripts/depgraph_release.py verify
+```
+
+## openpath のインストール
 
 ```bash
 brew install --cask tamat-llc/tap/openpath
@@ -101,8 +137,8 @@ checkout では認証情報を残さず（`persist-credentials: false`）、ワ�
 
 ## English
 
-This is the Homebrew tap for macOS apps published by TamaT LLC.
-It currently provides a single cask, [openpath](https://github.com/TamaT-LLC/openpath), a menu bar app that adds a fuzzy search palette to file open dialogs (macOS 14 Sonoma or later, Apple Silicon and Intel).
+This is the Homebrew tap for apps and CLI tools published by TamaT LLC.
+It provides the `depgraph` formula (macOS / Linux, ARM64 / x86-64) and the cask [openpath](https://github.com/TamaT-LLC/openpath), a menu bar app that adds a fuzzy search palette to file open dialogs (macOS 14 Sonoma or later, Apple Silicon and Intel).
 
 ```bash
 brew install --cask tamat-llc/tap/openpath   # install
@@ -114,3 +150,14 @@ brew uninstall --cask --zap openpath         # also remove settings, logs, and p
 - openpath needs the Accessibility permission. Allow it in System Settings > Privacy & Security > Accessibility on first launch.
 - Only stable releases (tags `vX.Y.Z`, signed with Developer ID and notarized) are published here. Previews (`preview-vX.Y.Z-N`) are not; download them from GitHub Releases instead.
 - When an openpath stable release is published, its release workflow opens a pull request here (through a GitHub App) that replaces `Casks/openpath.rb` with the cask attached to the release. It is merged automatically once CI passes: `brew audit` runs `brew style` and `brew audit --cask`, and `release check` verifies that the release is a stable one and that the cask matches its tag, its ZIP, and `SHA256SUMS`. Pull requests opened by the app are excluded from CodeRabbit's automatic reviews.
+
+Install depgraph with `brew install tamat-llc/tap/depgraph` once; then use
+`brew install depgraph`, `brew upgrade depgraph`, and `brew uninstall depgraph`.
+If you already tapped the repository without trusting the formula, run
+`brew trust --formula tamat-llc/tap/depgraph` first.
+Node.js 24 is installed as a dependency and selected by the launchers. Existing
+project toolchains/offline dependencies are needed for Go and Rust analysis.
+MCP/compiler-precise analysis needs the matching verified compiler pack.
+The formula preserves the entire native package; CI verifies signed tags,
+successful CI/Release runs, public evidence, four archive digests, and rejects
+downgrades. Installation and worker-integrity tests run on all four platforms.

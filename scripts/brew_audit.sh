@@ -36,3 +36,9 @@ ln -s "${repo_root}" "${tap_dir}"
 brew --version
 brew style --cask "${CASK}"
 brew audit "${AUDIT_ARGS[@]}" "${CASK}"
+
+# Keep the verified native package tree intact; the formula test exercises its workers.
+brew style --formula "${TAP_USER}/tap/depgraph"
+brew audit --formula --strict --online --except installed "${TAP_USER}/tap/depgraph"
+brew install --formula "${TAP_USER}/tap/depgraph"
+brew test "${TAP_USER}/tap/depgraph"

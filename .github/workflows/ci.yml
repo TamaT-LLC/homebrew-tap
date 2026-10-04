@@ -92,3 +92,44 @@ jobs:
             cat "${work}/result.txt"
             echo '```'
           } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Verify Formula/depgraph.rb against its signed public release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          base_args=()
+          if [[ "${EVENT_NAME}" == "pull_request" ]] && git cat-file -e HEAD^1:Formula/depgraph.rb 2>/dev/null; then
+            git show HEAD^1:Formula/depgraph.rb > "${RUNNER_TEMP}/depgraph-base.rb"
+            base_args=(--base-formula "${RUNNER_TEMP}/depgraph-base.rb")
+          fi
+          python3 scripts/depgraph_release.py verify "${base_args[@]}"
+
+  depgraph-install:
+    name: depgraph install (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel, ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install and test the native package with Homebrew
+        env:
+          HOMEBREW_GITHUB_API_TOKEN: ${{ github.token }}
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+          HOMEBREW_NO_ANALYTICS: "1"
+          HOMEBREW_NO_INSTALL_CLEANUP: "1"
+        run: |
+          if [[ "${RUNNER_OS}" == "Linux" ]]; then
+            eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          fi
+          tap_dir="$(brew --repository)/Library/Taps/tamat-llc/homebrew-tap"
+          test ! -e "${tap_dir}"
+          mkdir -p "$(dirname "${tap_dir}")"
+          ln -s "${GITHUB_WORKSPACE}" "${tap_dir}"
+          brew install --formula tamat-llc/tap/depgraph
+          brew test tamat-llc/tap/depgraph
