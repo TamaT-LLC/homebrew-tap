@@ -1,0 +1,94 @@
+name: CI
+
+# openpath の Release ワークフローは、Stable を公開すると Casks/openpath.rb を更新する PR を
+# この tap に出し、auto-merge を要求する。main のルールセットで必須にする次の 2 つの job が、
+# その PR をマージしてよいかを決める。job 名は openpath 側と合わせているので変えない。
+#   brew audit     brew style と brew audit --cask
+#   release check  scripts と workflow の unittest、cask と openpath の Release との照合
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+# 同じ PR / ブランチへの連続 push では古い実行を止める
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    # 明示すると -o pipefail 付きで実行され、パイプ途中の失敗も検出できる
+    shell: bash
+
+env:
+  OPENPATH_REPOSITORY: TamaT-LLC/openpath
+
+jobs:
+  brew-audit:
+    name: brew audit
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: brew style and brew audit --cask
+        env:
+          # livecheck と GitHub の audit が API の匿名の回数制限にかからないよう、読み取り専用のトークンを渡す
+          HOMEBREW_GITHUB_API_TOKEN: ${{ github.token }}
+        run: scripts/brew_audit.sh
+
+  release-check:
+    name: release check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # PR では merge commit の 1 番目の親（base）の cask と版を比べるため、親まで取得する
+          fetch-depth: 2
+
+      - name: Test scripts and workflow policy
+        run: python3 -m unittest discover -s tests -v
+
+      # Casks/openpath.rb が名指す版の Release を取得し、SHA256SUMS、cask の version・sha256・url、
+      # Stable（draft でも prerelease でもない）であることを確かめる。cask を変えない PR でも、
+      # main の cask がその Release と合っていることを毎回確かめる。
+      - name: Verify Casks/openpath.rb against its openpath release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          tag="$(python3 scripts/check_release.py tag --cask Casks/openpath.rb)"
+          work="${RUNNER_TEMP}/openpath-release"
+          mkdir -p "${work}/assets"
+
+          gh api "repos/${OPENPATH_REPOSITORY}/releases/tags/${tag}" > "${work}/release.json"
+          gh release download "${tag}" --repo "${OPENPATH_REPOSITORY}" --dir "${work}/assets" \
+            --pattern openpath.rb --pattern SHA256SUMS --pattern "openpath-${tag#v}.zip"
+
+          base_args=()
+          if [[ "${EVENT_NAME}" == "pull_request" ]]; then
+            git show "HEAD^1:Casks/openpath.rb" > "${work}/base.rb"
+            base_args=(--base-cask "${work}/base.rb")
+          fi
+          python3 scripts/check_release.py verify --cask Casks/openpath.rb \
+            --release-json "${work}/release.json" --assets "${work}/assets" "${base_args[@]}" \
+            | tee "${work}/result.txt"
+
+          {
+            echo "### release check"
+            echo
+            echo "Casks/openpath.rb は openpath ${tag} の Stable と一致しました。"
+            echo
+            echo '```'
+            cat "${work}/result.txt"
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY}"

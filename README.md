@@ -62,18 +62,37 @@ Preview を試す場合は、[GitHub Releases](https://github.com/TamaT-LLC/open
 
 ## 自動反映のしくみ
 
-openpath の Stable を公開すると、その Release に cask（`openpath.rb`）と `SHA256SUMS` が添付されます。
-この tap の GitHub Actions は 1 時間ごとに openpath の最新の Stable を確認し、新しい版があれば添付の cask を検証してから `Casks/openpath.rb` を置き換えます。
-そのため、Stable の公開から tap への反映までには、最大で 1 時間程度かかります。
+openpath の Stable を公開すると、openpath の Release ワークフローが GitHub App でこの tap に PR を出します。
+PR は、Release に添付された cask（`openpath.rb`）で `Casks/openpath.rb` を置き換えるもので、tap の CI が通ると自動でマージされます。
 
-反映する前に、次のことを確かめます。
+CI は次のことを確かめ、1 つでも合わなければマージしません。
 
-- ZIP と `openpath.rb` の SHA256 が、Release の `SHA256SUMS` と一致すること
-- cask の `version` が tag と一致し、`sha256` がその ZIP と一致すること
-- cask の `url` が、その Stable の ZIP を指していること
-- `brew style` と `brew audit --cask` を通ること
+- `brew style` と `brew audit --cask` を通ること（job `brew audit`）
+- cask の版の Release が、draft でも prerelease でもない Stable であること（job `release check`、以下も同じ）
+- ZIP と添付の `openpath.rb` の SHA256 が、Release の `SHA256SUMS` と一致すること
+- tap の cask と添付の cask の `version`・`sha256`・`url` が、その Stable の tag と ZIP に一致すること
+- PR で cask の版が main より古くならないこと
 
-1 つでも合わなければ反映せず、ワークフローを失敗にします。
+## メンテナー向け
+
+main のルールセットでは、CI の `brew audit` と `release check` を必須チェックにします。
+この 2 つの job 名は openpath の Release ワークフローと合わせているので、変えるときは両方のリポジトリをそろえてください。
+
+`brew audit` job は、`brew audit --cask --new --except github_repository` を実行します。
+`--new` は `--strict` と `--online` を含み、署名と公証の audit も有効にします。
+外している `github_repository` は、homebrew/cask に採用する条件（star などの数と、作成から 30 日以上）を見る audit で、この tap には当てはまりません。
+
+手元では、tap を追加せずに次の確認ができます。
+`brew audit` は tap を必要とするため、CI に任せます。
+
+```bash
+HOMEBREW_NO_AUTO_UPDATE=1 brew style Casks/openpath.rb
+python3 -m unittest discover -s tests -v
+pyright
+```
+
+GitHub Actions の action は commit SHA で固定し、`.github/actions-policy.json` に記録します。
+checkout では認証情報を残さず（`persist-credentials: false`）、ワークフローには読み取りの権限だけを与えます。
 
 ## ライセンス
 
@@ -93,4 +112,4 @@ brew uninstall --cask --zap openpath         # also remove settings, logs, and p
 
 - openpath needs the Accessibility permission. Allow it in System Settings > Privacy & Security > Accessibility on first launch.
 - Only stable releases (tags `vX.Y.Z`, signed with Developer ID and notarized) are published here. Previews (`preview-vX.Y.Z-N`) are not; download them from GitHub Releases instead.
-- A GitHub Actions workflow checks the latest openpath stable release about once an hour. It verifies the attached cask against `SHA256SUMS`, the tag, and the ZIP, runs `brew style` and `brew audit --cask`, and only then updates `Casks/openpath.rb`.
+- When an openpath stable release is published, its release workflow opens a pull request here (through a GitHub App) that replaces `Casks/openpath.rb` with the cask attached to the release. It is merged automatically once CI passes: `brew audit` runs `brew style` and `brew audit --cask`, and `release check` verifies that the release is a stable one and that the cask matches its tag, its ZIP, and `SHA256SUMS`.
