@@ -64,6 +64,7 @@ Preview を試す場合は、[GitHub Releases](https://github.com/TamaT-LLC/open
 
 openpath の Stable を公開すると、openpath の Release ワークフローが GitHub App でこの tap に PR を出します。
 PR は、Release に添付された cask（`openpath.rb`）で `Casks/openpath.rb` を置き換えるもので、tap の CI が通ると自動でマージされます。
+App が出す PR は CI（`brew audit` / `release check`）で検証し、CodeRabbit の自動レビューの対象外です。
 
 CI は次のことを確かめ、1 つでも合わなければマージしません。
 
@@ -112,4 +113,4 @@ brew uninstall --cask --zap openpath         # also remove settings, logs, and p
 
 - openpath needs the Accessibility permission. Allow it in System Settings > Privacy & Security > Accessibility on first launch.
 - Only stable releases (tags `vX.Y.Z`, signed with Developer ID and notarized) are published here. Previews (`preview-vX.Y.Z-N`) are not; download them from GitHub Releases instead.
-- When an openpath stable release is published, its release workflow opens a pull request here (through a GitHub App) that replaces `Casks/openpath.rb` with the cask attached to the release. It is merged automatically once CI passes: `brew audit` runs `brew style` and `brew audit --cask`, and `release check` verifies that the release is a stable one and that the cask matches its tag, its ZIP, and `SHA256SUMS`.
+- When an openpath stable release is published, its release workflow opens a pull request here (through a GitHub App) that replaces `Casks/openpath.rb` with the cask attached to the release. It is merged automatically once CI passes: `brew audit` runs `brew style` and `brew audit --cask`, and `release check` verifies that the release is a stable one and that the cask matches its tag, its ZIP, and `SHA256SUMS`. Pull requests opened by the app are excluded from CodeRabbit's automatic reviews.
