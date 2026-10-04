@@ -25,6 +25,9 @@ class Depgraph < Formula
     end
   end
 
+  # Homebrew must not rewrite Node shebangs in checksum-verified release artifacts.
+  skip_clean "libexec"
+
   def install
     # Packaged workers verify the entire release tree. Preserve every byte and path.
     libexec.install Dir["*"]
@@ -47,12 +50,7 @@ class Depgraph < Formula
     (testpath/"tsconfig.json").write('{"compilerOptions":{"strict":true},"include":["*.ts"]}')
     (testpath/"index.ts").write("export const value: number = 42;\n")
     store = testpath/"graph.sqlite"
-    scan_text, scan_status = Open3.capture2("#{bin}/depgraph", "--store", store.to_s, "scan", testpath.to_s, "--json")
-    ohai scan_text
-    doctor_text, = Open3.capture2("#{bin}/depgraph", "--store", store.to_s, "doctor", "--json")
-    ohai doctor_text
-    assert_equal 0, scan_status.exitstatus
-    scan = JSON.parse(scan_text)
+    scan = JSON.parse(shell_output("#{bin}/depgraph --store #{store} scan #{testpath} --json"))
     assert_equal "completed", scan.fetch("status")
     assert_operator scan.dig("coverage", "files_analyzed"), :>, 0
     result = JSON.parse(shell_output("#{bin}/depgraph --store #{store} doctor --json"))
