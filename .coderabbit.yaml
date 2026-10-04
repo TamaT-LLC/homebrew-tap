@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
-# ここに書いていない設定は Organization の UI 設定を引き継ぐ（人が出す PR のレビューは変えない）。
+# ここに書いていない設定は Organization の UI 設定を引き継ぐ。レビュー言語は PR の作成者を問わず ja-JP にする。
 inheritance: true
 language: ja-JP
 reviews:
