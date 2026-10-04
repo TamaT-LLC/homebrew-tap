@@ -49,7 +49,8 @@ class Depgraph < Formula
     store = testpath/"graph.sqlite"
     scan_text, scan_status = Open3.capture2("#{bin}/depgraph", "--store", store.to_s, "scan", testpath.to_s, "--json")
     ohai scan_text
-    ohai shell_output("#{bin}/depgraph --store #{store} doctor --json", [0, 3])
+    doctor_text, = Open3.capture2("#{bin}/depgraph", "--store", store.to_s, "doctor", "--json")
+    ohai doctor_text
     assert_equal 0, scan_status.exitstatus
     scan = JSON.parse(scan_text)
     assert_equal "completed", scan.fetch("status")
