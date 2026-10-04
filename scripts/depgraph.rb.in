@@ -47,7 +47,11 @@ class Depgraph < Formula
     (testpath/"tsconfig.json").write('{"compilerOptions":{"strict":true},"include":["*.ts"]}')
     (testpath/"index.ts").write("export const value: number = 42;\n")
     store = testpath/"graph.sqlite"
-    scan = JSON.parse(shell_output("#{bin}/depgraph --store #{store} scan #{testpath} --json"))
+    scan_text, scan_status = Open3.capture2("#{bin}/depgraph", "--store", store.to_s, "scan", testpath.to_s, "--json")
+    ohai scan_text
+    ohai shell_output("#{bin}/depgraph --store #{store} doctor --json", [0, 3])
+    assert_equal 0, scan_status.exitstatus
+    scan = JSON.parse(scan_text)
     assert_equal "completed", scan.fetch("status")
     assert_operator scan.dig("coverage", "files_analyzed"), :>, 0
     result = JSON.parse(shell_output("#{bin}/depgraph --store #{store} doctor --json"))
