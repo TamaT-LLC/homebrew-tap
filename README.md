@@ -11,8 +11,9 @@ TamaT LLC のアプリと CLI を Homebrew で配布する tap です。
 
 ## depgraph のインストール
 
-macOS（Apple Silicon / Intel）と Linux（ARM64 / x86-64）向けの公式ネイティブパッケージを導入します。
+macOS（Apple Silicon）と Linux（ARM64 / x86-64）向けの公式ネイティブパッケージを導入します。
 Linux は Ubuntu 24.04 の glibc 環境で検証します。
+v0.6.2以降はIntel Mac向けの公式パッケージがないため、インストールを拒否します。
 
 ```bash
 brew install tamat-llc/tap/depgraph
@@ -34,8 +35,9 @@ Go・Rust の解析には、対象プロジェクトのツールチェーンと�
 導入手順は [depgraph の README](https://github.com/TamaT-LLC/depgraph-cli#readme) を参照してください。
 
 Formula は公式アーカイブの全ファイルを変更せずに保持します。
-CI は署名付き tag、成功した CI / Release、公開後証跡、4 ターゲットの SHA-256、版の後退がないことを検証します。
-macOS / Linux の各 CPU で `brew install` と `brew test` を実行し、Web の解析と同梱ワーカーの整合性を確認します。
+CI は署名付き tag、成功した CI / Release、公開後証跡、3 ターゲットの SHA-256、版の後退がないことを検証します。
+対応する3環境で `brew install` と `brew test` を実行し、Web の解析と同梱ワーカーの整合性を確認します。
+Intel MacではARM64要件によってインストールが拒否されることを検証します。
 
 メンテナーは次のコマンドで新しい Stable の Formula を生成できます。
 公開後証跡がない Release や、一部ターゲットが欠けている Release は拒否します。
@@ -138,7 +140,7 @@ checkout では認証情報を残さず（`persist-credentials: false`）、ワ�
 ## English
 
 This is the Homebrew tap for apps and CLI tools published by TamaT LLC.
-It provides the `depgraph` formula (macOS / Linux, ARM64 / x86-64) and the cask [openpath](https://github.com/TamaT-LLC/openpath), a menu bar app that adds a fuzzy search palette to file open dialogs (macOS 14 Sonoma or later, Apple Silicon and Intel).
+It provides the `depgraph` formula (macOS ARM64 / Linux ARM64 and x86-64) and the cask [openpath](https://github.com/TamaT-LLC/openpath), a menu bar app that adds a fuzzy search palette to file open dialogs (macOS 14 Sonoma or later, Apple Silicon and Intel).
 
 ```bash
 brew install --cask tamat-llc/tap/openpath   # install
@@ -159,5 +161,7 @@ Node.js 24 is installed as a dependency and selected by the launchers. Existing
 project toolchains/offline dependencies are needed for Go and Rust analysis.
 MCP/compiler-precise analysis needs the matching verified compiler pack.
 The formula preserves the entire native package; CI verifies signed tags,
-successful CI/Release runs, public evidence, four archive digests, and rejects
-downgrades. Installation and worker-integrity tests run on all four platforms.
+successful CI/Release runs, public evidence, three archive digests, and rejects
+downgrades. Installation and worker-integrity tests run on the three supported platforms.
+Since v0.6.2, Intel macOS has no official package; CI verifies that installation
+is rejected by the ARM64 requirement.

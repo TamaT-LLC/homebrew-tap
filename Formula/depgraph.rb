@@ -5,24 +5,19 @@ class Depgraph < Formula
 
   depends_on "node@24"
 
-  on_macos do
-    if Hardware::CPU.arm?
-      url "https://github.com/TamaT-LLC/depgraph-cli/releases/download/v0.6.1/depgraph-0.6.1-aarch64-apple-darwin.tar.gz"
-      sha256 "8790be64c7c582490ecb73a0b0d9d501a1eb7cdaee111e8e1e2f234f1ddd52be"
-    else
-      url "https://github.com/TamaT-LLC/depgraph-cli/releases/download/v0.6.1/depgraph-0.6.1-x86_64-apple-darwin.tar.gz"
-      sha256 "6f8d57d05f165e1090955b16a93c0edafb001b1c366c3a1e5a3ab7f28340b665"
-    end
+  if OS.mac?
+    url "https://github.com/TamaT-LLC/depgraph-cli/releases/download/v0.6.2/depgraph-0.6.2-aarch64-apple-darwin.tar.gz"
+    sha256 "30a4e27db33c12f9dae837f34e59755a49ebf631803e8a8abb003c8ba5033f58"
+  elsif Hardware::CPU.arm?
+    url "https://github.com/TamaT-LLC/depgraph-cli/releases/download/v0.6.2/depgraph-0.6.2-aarch64-unknown-linux-gnu.tar.gz"
+    sha256 "9e3d1028c91645e7fc74c7a1cfd4f661bcb785e669ad14ed2d2d1558dd8c1d80"
+  else
+    url "https://github.com/TamaT-LLC/depgraph-cli/releases/download/v0.6.2/depgraph-0.6.2-x86_64-unknown-linux-gnu.tar.gz"
+    sha256 "dd4c9afe63d22988b1dbfa3a0676c6f6c7b11f168f6765eda133ca4c57ddc712"
   end
 
-  on_linux do
-    if Hardware::CPU.arm?
-      url "https://github.com/TamaT-LLC/depgraph-cli/releases/download/v0.6.1/depgraph-0.6.1-aarch64-unknown-linux-gnu.tar.gz"
-      sha256 "584a9d86be5005d848d01c4803b07dd73fe7ecd46cf21fd7f6b6bc191c47e211"
-    else
-      url "https://github.com/TamaT-LLC/depgraph-cli/releases/download/v0.6.1/depgraph-0.6.1-x86_64-unknown-linux-gnu.tar.gz"
-      sha256 "d77b3f0232199337932478a25994edd49cae135e86f5c8a130d3f1af770a40a6"
-    end
+  on_macos do
+    depends_on arch: :arm64
   end
 
   # Homebrew must not rewrite Node shebangs in checksum-verified release artifacts.
