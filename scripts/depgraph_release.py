@@ -10,7 +10,7 @@ from typing import Any
 
 REPOSITORY = "TamaT-LLC/depgraph-cli"
 TARGETS = (
-    "aarch64-apple-darwin", "x86_64-apple-darwin",
+    "aarch64-apple-darwin",
     "aarch64-unknown-linux-gnu", "x86_64-unknown-linux-gnu",
 )
 TAG = re.compile(r"v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\Z")
@@ -171,7 +171,7 @@ def main():
         args.formula.write_text(expected)
     else:
         require(args.formula.read_text() == expected, "formula differs from verified canonical template")
-    print(f"{args.command}: depgraph {tag}, signed tag, successful CI/Release, four archive digests verified")
+    print(f"{args.command}: depgraph {tag}, signed tag, successful CI/Release, {len(TARGETS)} archive digests verified")
 
 
 if __name__ == "__main__":

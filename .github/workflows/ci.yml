@@ -117,7 +117,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Install and test the native package with Homebrew
+      - name: Test supported installations and reject Intel macOS
         env:
           HOMEBREW_GITHUB_API_TOKEN: ${{ github.token }}
           HOMEBREW_NO_AUTO_UPDATE: "1"
@@ -131,5 +131,14 @@ jobs:
           test ! -e "${tap_dir}"
           mkdir -p "$(dirname "${tap_dir}")"
           ln -s "${GITHUB_WORKSPACE}" "${tap_dir}"
-          brew install --formula tamat-llc/tap/depgraph
-          brew test --verbose tamat-llc/tap/depgraph
+          if [[ "${RUNNER_OS}" == "macOS" && "${RUNNER_ARCH}" == "X64" ]]; then
+            if brew install --formula tamat-llc/tap/depgraph > "${RUNNER_TEMP}/depgraph-install.log" 2>&1; then
+              echo 'Intel macOS unexpectedly accepted an ARM64-only release' >&2
+              exit 1
+            fi
+            cat "${RUNNER_TEMP}/depgraph-install.log"
+            grep -Fq 'The arm64 architecture is required for this software.' "${RUNNER_TEMP}/depgraph-install.log"
+          else
+            brew install --formula tamat-llc/tap/depgraph
+            brew test --verbose tamat-llc/tap/depgraph
+          fi
