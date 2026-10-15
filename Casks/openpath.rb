@@ -1,6 +1,6 @@
 cask "openpath" do
-  version "0.1.2"
-  sha256 "d8ceea703530a09bbca888309bee4ccc6d5fc7ded959737cd2701135fa0fe4d6"
+  version "0.1.3"
+  sha256 "28be63f0ae19232f5be8a53ea614cacc2d79820d57ba21e0931449fa9b9494a5"
 
   url "https://github.com/TamaT-LLC/openpath/releases/download/v#{version}/openpath-#{version}.zip"
   name "openpath"
