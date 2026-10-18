@@ -6,14 +6,14 @@ class Depgraph < Formula
   depends_on "node@24"
 
   if OS.mac?
-    url "https://github.com/TamaT-LLC/depgraph-cli/releases/download/v0.6.3/depgraph-0.6.3-aarch64-apple-darwin.tar.gz"
-    sha256 "9d4a94c962f1655088ffa4255f30ea927efa1fcf35d858ced03e6b9abc125b21"
+    url "https://github.com/TamaT-LLC/depgraph-cli/releases/download/v0.6.4/depgraph-0.6.4-aarch64-apple-darwin.tar.gz"
+    sha256 "9c2bd10bfae690d5c1e183efb1e86e2a3bb5970fada457c50ce0012a7d749b62"
   elsif Hardware::CPU.arm?
-    url "https://github.com/TamaT-LLC/depgraph-cli/releases/download/v0.6.3/depgraph-0.6.3-aarch64-unknown-linux-gnu.tar.gz"
-    sha256 "0af13fecdace6649f9a8151ee6450f41e21c2d7b0b9f8d5f96a427f2f9a93dc7"
+    url "https://github.com/TamaT-LLC/depgraph-cli/releases/download/v0.6.4/depgraph-0.6.4-aarch64-unknown-linux-gnu.tar.gz"
+    sha256 "df8b329fd450f681fc34c1aa89994247a1f553b9a679ab6a88852cfe75a13aa3"
   else
-    url "https://github.com/TamaT-LLC/depgraph-cli/releases/download/v0.6.3/depgraph-0.6.3-x86_64-unknown-linux-gnu.tar.gz"
-    sha256 "cb8e2a7ade1466df20ab6c6d9d75f69ac395aad41f43f86f661ec4fda1a3153d"
+    url "https://github.com/TamaT-LLC/depgraph-cli/releases/download/v0.6.4/depgraph-0.6.4-x86_64-unknown-linux-gnu.tar.gz"
+    sha256 "aaaa1e40128733bf9c5c9e5fe936c1bb658115684f73ede466227593b0e78d62"
   end
 
   on_macos do
