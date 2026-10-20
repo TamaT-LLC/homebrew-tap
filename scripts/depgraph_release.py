@@ -60,7 +60,7 @@ def download(asset):
     return data
 
 
-def validate(tag, release, evidence, tag_ref, tag_object, runs):
+def validate(tag, release, evidence, tag_ref, tag_object, runs, recovery=None):
     version(tag)
     require(release.get("tag_name") == tag and release.get("draft") is False
             and release.get("prerelease") is False, "not a public stable release")
@@ -91,7 +91,11 @@ def validate(tag, release, evidence, tag_ref, tag_object, runs):
                 and run.get("name") == name and run.get("path") == path
                 and run.get("head_sha") == sha and run.get("head_branch") == branch
                 and run.get("event") in (("push", "workflow_dispatch") if key == "full_ci" else ("push",)) and run.get("status") == "completed"
-                and run.get("conclusion") == "success"
+                and (run.get("conclusion") == "success" or (
+                    key == "release_workflow" and tag == "v0.7.1"
+                    and run.get("conclusion") == "failure" and recovery is not None
+                    and recovery["original_release_run"] == run["id"] == 39417728460
+                    and recovery["source"]["commit"] == sha == "26aacf9b839fd5ba9d824c2efcff2efc7084aec8"))
                 and run["repository"]["full_name"] == REPOSITORY
                 and run["head_repository"]["full_name"] == REPOSITORY,
                 f"{name} is not a successful canonical run")
@@ -118,7 +122,11 @@ def verified_release(tag):
     tag_object = api(f"git/tags/{ref['object']['sha']}")
     runs = {key: api(f"actions/runs/{evidence[key]['run_id']}")
             for key in ("full_ci", "release_workflow")}
-    digests = validate(tag, release, evidence, ref, tag_object, runs)
+    recovery = None
+    if tag == "v0.7.1" and runs["release_workflow"].get("conclusion") == "failure":
+        from depgraph_v071_recovery import verify
+        recovery = verify()
+    digests = validate(tag, release, evidence, ref, tag_object, runs, recovery)
     for target, digest in digests.items():
         name = f"depgraph-{tag[1:]}-{target}.tar.gz"
         checksum = download(assets[name + ".sha256"]).decode("ascii")
@@ -171,7 +179,7 @@ def main():
         args.formula.write_text(expected)
     else:
         require(args.formula.read_text() == expected, "formula differs from verified canonical template")
-    print(f"{args.command}: depgraph {tag}, signed tag, successful CI/Release, {len(TARGETS)} archive digests verified")
+    print(f"{args.command}: depgraph {tag}, signed tag, successful CI and canonical publication evidence, {len(TARGETS)} archive digests verified")
 
 
 if __name__ == "__main__":
